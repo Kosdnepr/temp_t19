@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Chat</title>
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+	<script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+	<script>
+		var socket = io();
+		function setUsername() {
+			socket.emit('setUsername', document.getElementById('name').value);
+		}
+
+		var user;
+
+		socket.on('userExists', function(data) {
+			document.getElementById('error').innerHTML = data;
+		});
+
+		socket.on('userSet', function(data) {
+			user = data.userName;
+			document.body.innerHTML = '\
+				<div class="container">\
+					<div class="row">\
+						<div class="col-lg-6 offset-lg-3"\
+							<div class="form-group">\
+								<input type="text" class="form-control" id="message" placeholder="Your message">\
+								<button type="button" class="btn btn-primary" name="button" onclick="sendMessage()">Send</button>\
+								<div id="message-container"></div>\
+							</div>\
+						</div>\
+					</div>\
+				</div>';
+		});
+
+		function sendMessage() {
+			var messageData = document.getElementById('message').value;
+			if(messageData) {
+				socket.emit('message', {user: user, message: messageData});
+			}
+			document.getElementById('message').value='';
+		}
+		socket.on('newMessage', function(data){
+			if(user) {
+				document.getElementById('message-container').innerHTML += '<div><b>' + data.user + '</b>:' + data.message + '</div>'
+			}
+		});
+	</script>
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-6 offset-lg-3">
+				<div id="error">
+				</div>
+				<div class="form-group">
+					<label for="name">Let's chat!</label>
+					<input type="text" class="form-control" id="name" placeholder="Enter your name">
+					<button type="submit" class="btn btn-primary" name="button" onclick="setUsername()">Go!</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
